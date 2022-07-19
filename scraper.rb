@@ -13,7 +13,7 @@ def request(adress)
 end
 
 def type(city)
-  lastpage = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1  
+  lastpage = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
   types = []
   page = 1
 
@@ -28,9 +28,9 @@ end
 
 def link(types)
   book = Spreadsheet::Workbook.new
-  book.create_worksheet :name => "Places"
+  book.create_worksheet name: 'Places'
   sheet = book.worksheet(0)
-  headers = 'Name', 'Type', 'Adress', 'Coordinate', 'Parking', 'Rating', 'Phone', 'Mail', 'Social', 'Website', 'Open-Hours' 
+  headers = %w(name type adress coordinate parking rating phone mail social website ophours)
   sheet.row(0).concat headers
   index = 1
 
