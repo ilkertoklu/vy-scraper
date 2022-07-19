@@ -4,6 +4,7 @@ require 'httparty'
 require 'nokogiri'
 
 city = 'Samsun'
+
 def request(adress)
   response = HTTParty.get(adress)
   html = response.body
