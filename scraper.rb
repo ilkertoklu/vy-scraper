@@ -30,7 +30,7 @@ def link(types)
   book = Spreadsheet::Workbook.new
   book.create_worksheet :name => "Places"
   sheet = book.worksheet(0)
-  headers = 'Name','Type','Adress','Coordinate','Parking','Rating','Phone','Mail','Social','Website','Open-Hours' 
+  headers = 'Name', 'Type', 'Adress', 'Coordinate', 'Parking', 'Rating', 'Phone', 'Mail', 'Social', 'Website', 'Open-Hours' 
   sheet.row(0).concat headers
   index = 1
 
