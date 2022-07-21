@@ -9,7 +9,7 @@ city = 'Samsun'
 def request(adress)
   response = HTTParty.get(adress)
   html = response.body
-  doc = Nokogiri::HTML(html)
+  Nokogiri::HTML(html)
 end
 
 def type(city)
@@ -30,7 +30,7 @@ def link(types)
   book = Spreadsheet::Workbook.new
   book.create_worksheet name: 'Places'
   sheet = book.worksheet(0)
-  headers = %w(name type adress coordinate parking rating phone mail social website ophours)
+  headers = %w[name type adress coordinate parking rating phone mail social website ophours]
   sheet.row(0).concat headers
   index = 1
 
