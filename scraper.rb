@@ -5,12 +5,25 @@ require 'nokogiri'
 require 'spreadsheet'
 
 city = 'Samsun'
-types = %w(https://vymaps.com/TR/Samsun/aircraft-boat/)
 
 def request(adress)
   response = HTTParty.get(adress)
   html = response.body
   doc = Nokogiri::HTML(html)
+end
+
+def type(city)
+  lastpage = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
+  types = []
+  page = 1
+
+  while page < lastpage
+    url = "https://vymaps.com/TR/#{city}/#{page}"
+    data = request(url).xpath('//div/a/@href')
+    types += data
+    page += 1
+  end
+  link(types)
 end
 
 def link(types)
@@ -26,7 +39,7 @@ def link(types)
     page = 1
 
     while page < lastpage
-      link_with_page = type + page.to_s
+      link_with_page = type.text + page.to_s
       doc = request(link_with_page)
       links = doc.xpath('//p/b/a/@href')
       page += 1
@@ -66,5 +79,4 @@ def listing(link, book, sheet, index)
   book.write 'places.xls'
   puts index
 end
-link(types)
-
+type(city)
