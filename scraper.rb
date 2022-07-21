@@ -67,3 +67,4 @@ def listing(link, book, sheet, index)
   puts index
 end
 link(types)
+
