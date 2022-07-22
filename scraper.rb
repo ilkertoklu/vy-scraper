@@ -12,6 +12,10 @@ def request(adress)
   Nokogiri::HTML(html)
 end
 
+def encoder(list)
+  list.map { |info| info.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8') }
+end
+
 def type(city)
   lastpage = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
   types = []
@@ -27,11 +31,9 @@ def type(city)
 end
 
 def link(types)
-  book = Spreadsheet::Workbook.new
-  book.create_worksheet name: 'Places'
-  sheet = book.worksheet(0)
-  headers = %w[name type adress coordinate parking rating phone mail social website ophours]
-  sheet.row(0).concat headers
+  wb = Spreadsheet::Workbook.new
+  sheet = wb.create_worksheet name: 'places'
+  sheet.row(0).concat %w[name type adress coordinate parking rating phone mail social website ophours]
   index = 1
 
   types.each do |type|
@@ -45,14 +47,15 @@ def link(types)
       page += 1
 
       links.each do |link|
-        listing(link, book, sheet, index)
+        listing(link, sheet, index)
+        wb.write 'places.xls'
         index += 1
       end
     end
   end
 end
 
-def listing(link, book, sheet, index)
+def listing(link, sheet, index)
   doc = request(link)
   name = doc.xpath('//h1/a/b').text
   type = doc.xpath('//tr[1]/td[3]').text
@@ -70,13 +73,6 @@ def listing(link, book, sheet, index)
   ophours = ophours.join(', ')
 
   list = name, type, adress, coordinate, parking, rating, phone, mail, social, website, ophours
-  encoded_list = []
-
-  list.each do |element|
-    encoded_list << element.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8')
-  end
-  sheet.row(index).concat encoded_list
-  book.write 'places.xls'
-  puts index
+  sheet.row(index).concat encoder(list)
 end
 type(city)
