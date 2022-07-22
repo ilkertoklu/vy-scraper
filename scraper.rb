@@ -17,11 +17,11 @@ def encoder(list)
 end
 
 def type(city)
-  lastpage = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
+  last_page = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
   types = []
   page = 1
 
-  while page < lastpage
+  while page < last_page
     url = "https://vymaps.com/TR/#{city}/#{page}"
     data = request(url).xpath('//div/a/@href')
     types += data
@@ -37,19 +37,18 @@ def link(types)
   index = 1
 
   types.each do |type|
-    lastpage = request(type).xpath('//div/b[1]').text.split(' ')[-2].to_i + 1
+    last_page = request(type).xpath('//div/b[1]').text.split(' ')[-2].to_i + 1
     page = 1
 
-    while page < lastpage
+    while page < last_page
       link_with_page = type.text + page.to_s
-      doc = request(link_with_page)
-      links = doc.xpath('//p/b/a/@href')
+      links = request(link_with_page).xpath('//p/b/a/@href')
       page += 1
 
       links.each do |link|
         listing(link, sheet, index)
-        wb.write 'places.xls'
-        index += 1
+        wb.write 'samsun_places.xls'
+        p index += 1
       end
     end
   end
