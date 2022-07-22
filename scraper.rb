@@ -76,4 +76,3 @@ def listing(link, sheet, index)
   sheet.row(index).concat encoder(list)
 end
 type(city)
-
