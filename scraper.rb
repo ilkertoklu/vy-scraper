@@ -33,7 +33,6 @@ end
 def link(types)
   wb = Spreadsheet::Workbook.new
   sheet = wb.create_worksheet name: 'places'
-  sheet.row(0).concat %w[name type adress coordinate parking rating phone mail social website ophours]
   index = 1
 
   types.each do |type|
@@ -47,7 +46,7 @@ def link(types)
 
       links.each do |link|
         listing(link, sheet, index)
-        wb.write 'samsun_places.xls'
+        wb.write 'places.xls'
         p index += 1
       end
     end
@@ -56,22 +55,14 @@ end
 
 def listing(link, sheet, index)
   doc = request(link)
-  name = doc.xpath('//h1/a/b').text
-  type = doc.xpath('//tr[1]/td[3]').text
-  adress = doc.xpath('//tr[2]/td[3]').text
-  coordinate = doc.xpath('//tr[3]/td[3]/a').text
-  parking = doc.xpath('//tr[6]/td[3]').text
-  rating = doc.xpath('//tr[7]/td[3]').text
-  phone = doc.xpath('//tr[4]/td[3]').text
-  mail = doc.xpath('//tr[5]/td[3]').text
-  social = doc.xpath('//tr[6]//@href').text
-  social += doc.xpath('//tr[6]/td[3]/a').text
-  website = doc.xpath('//tr[7]//@href').text
-  website += doc.xpath('//tr[8]//@href').text
-  ophours = doc.xpath("//div[@class='five columns']/span").text.split(/(?=[A-Z])/)
-  ophours = ophours.join(', ')
+  table = doc.xpath('//tbody/tr').map(&:text)
+  headers = [:name] + table.map { |row| row[0, row.index(':')].downcase.to_sym } + [:ophours]
 
-  list = name, type, adress, coordinate, parking, rating, phone, mail, social, website, ophours
-  sheet.row(index).concat encoder(list)
+  content = table.map { |row| row[row.index(':') + 1, row.length] }
+  ophours = [doc.xpath("//div[@class='five columns']/span").text.split(/(?=[A-Z])/).join(', ')]
+  body = [doc.xpath('//h1/a/b').text] + content + ophours
+
+  database = Hash[headers.zip body]
+  sheet.row(index).concat encoder(database.values)
 end
 type(city)
