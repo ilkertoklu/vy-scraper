@@ -4,7 +4,7 @@ require 'httparty'
 require 'nokogiri'
 require 'spreadsheet'
 
-city = 'Samsun' #Change as where you wish to scrap, or request the cities and countries array.
+city = 'Samsun' # Change as where you wish to scrap, or request the cities and countries array.
 
 def request(adress)
   response = HTTParty.get(adress)
@@ -13,7 +13,17 @@ def request(adress)
 end
 
 def encoder(list)
-  list.map { |info| info.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8') unless info.nil? }
+  list.map do |info|
+    info.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8') unless info.nil? || info.empty?
+  end
+end
+
+def column_check(db)
+  init_headers = [:name, :"place types", :address, :coordinate, :phone,
+                  :mail, :parking, :rating, :social, :website, :ophours]
+  data = []
+  init_headers.each { |header| data << db[header] }
+  data
 end
 
 def type(city)
@@ -33,6 +43,7 @@ end
 def link(types)
   wb = Spreadsheet::Workbook.new
   sheet = wb.create_worksheet name: 'places'
+  sheet.row(0).concat %w[name type address coordinate phone mail parking rating social website ophours]
   index = 1
 
   types.each do |type|
@@ -61,13 +72,8 @@ def listing(link, sheet, index)
   content = table.map { |row| row[row.index(':') + 1, row.length] }
   ophours = [doc.xpath("//div[@class='five columns']/span").text.split(/(?=[A-Z])/).join(', ')]
   body = [doc.xpath('//h1/a/b').text] + content + ophours
+
   db = Hash[headers.zip body]
-
-  init_headers = [:name, :"place types", :address, :coordinate, :phone,
-                  :mail, :parking, :rating, :social, :website, :ophours]
-  data = []
-
-  init_headers.each { |header| data << db[header] }
-  sheet.row(index).concat encoder(data)
+  sheet.row(index).concat encoder(column_check(db))
 end
 type(city)
