@@ -63,8 +63,8 @@ def listing(link, sheet, index)
   body = [doc.xpath('//h1/a/b').text] + content + ophours
   db = Hash[headers.zip body]
 
-  init_headers = [:name, :"place types", :address, :coordinate,
-  :phone, :mail, :parking, :rating, :social, :website, :ophours]
+  init_headers = [:name, :"place types", :address, :coordinate, :phone,
+                  :mail, :parking, :rating, :social, :website, :ophours]
   data = []
 
   init_headers.each { |header| data << db[header] }
