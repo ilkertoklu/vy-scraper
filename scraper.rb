@@ -77,3 +77,4 @@ def listing(link, sheet, index)
   sheet.row(index).concat encoder(column_check(db))
 end
 type(city)
+
