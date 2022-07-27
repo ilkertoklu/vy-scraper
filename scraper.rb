@@ -4,7 +4,7 @@ require 'httparty'
 require 'nokogiri'
 require 'spreadsheet'
 
-city = 'Samsun'
+city = 'Samsun' #Change as where you wish to scrap, or request the cities and countries array.
 
 def request(adress)
   response = HTTParty.get(adress)
@@ -13,7 +13,7 @@ def request(adress)
 end
 
 def encoder(list)
-  list.map { |info| info.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8') }
+  list.map { |info| info.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8') unless info.nil? }
 end
 
 def type(city)
@@ -46,7 +46,7 @@ def link(types)
 
       links.each do |link|
         listing(link, sheet, index)
-        wb.write 'places.xls'
+        wb.write 'places_samsun-deneme.xls'
         p index += 1
       end
     end
@@ -61,8 +61,13 @@ def listing(link, sheet, index)
   content = table.map { |row| row[row.index(':') + 1, row.length] }
   ophours = [doc.xpath("//div[@class='five columns']/span").text.split(/(?=[A-Z])/).join(', ')]
   body = [doc.xpath('//h1/a/b').text] + content + ophours
+  db = Hash[headers.zip body]
 
-  database = Hash[headers.zip body]
-  sheet.row(index).concat encoder(database.values)
+  init_headers = [:name, :"place types", :address, :coordinate,
+  :phone, :mail, :parking, :rating, :social, :website, :ophours]
+  data = []
+
+  init_headers.each { |header| data << db[header] }
+  sheet.row(index).concat encoder(data)
 end
 type(city)
