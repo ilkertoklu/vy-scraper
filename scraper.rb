@@ -32,17 +32,27 @@ def type(city)
   page = 1
 
   while page < last_page
-    url = "https://vymaps.com/TR/#{city}/#{page}"
-    data = request(url).xpath('//div/a/@href')
+    data = request("https://vymaps.com/TR/#{city}/#{page}").xpath('//div/a/@href')
     types += data
     page += 1
   end
   link(types)
 end
 
+def database(link)
+  doc = request(link)
+  table = doc.xpath('//tbody/tr').map(&:text)
+  headers = [:name] + table.map { |row| row[0, row.index(':')].downcase.to_sym } + [:ophours]
+
+  content = table.map { |row| row[row.index(':') + 1, row.length] }
+  ophours = [doc.xpath("//div[@class='five columns']/span").text.split(/(?=[A-Z])/).join(', ')]
+  body = [doc.xpath('//h1/a/b').text] + content + ophours
+  Hash[headers.zip body]
+end
+
 def link(types)
-  wb = Spreadsheet::Workbook.new
-  sheet = wb.create_worksheet name: 'places'
+  workbook = Spreadsheet::Workbook.new
+  sheet = workbook.create_worksheet name: 'places'
   sheet.row(0).concat %w[name type address coordinate phone mail parking rating social website ophours]
   index = 1
 
@@ -53,27 +63,14 @@ def link(types)
     while page < last_page
       link_with_page = type.text + page.to_s
       links = request(link_with_page).xpath('//p/b/a/@href')
-      page += 1
+      workbook.write 'places_samsun-deneme.xls'
 
       links.each do |link|
-        listing(link, sheet, index)
-        wb.write 'places_samsun-deneme.xls'
+        sheet.row(index).concat encoder(column_check(database(link)))
         p index += 1
       end
+      page += 1
     end
   end
-end
-
-def listing(link, sheet, index)
-  doc = request(link)
-  table = doc.xpath('//tbody/tr').map(&:text)
-  headers = [:name] + table.map { |row| row[0, row.index(':')].downcase.to_sym } + [:ophours]
-
-  content = table.map { |row| row[row.index(':') + 1, row.length] }
-  ophours = [doc.xpath("//div[@class='five columns']/span").text.split(/(?=[A-Z])/).join(', ')]
-  body = [doc.xpath('//h1/a/b').text] + content + ophours
-
-  db = Hash[headers.zip body]
-  sheet.row(index).concat encoder(column_check(db))
 end
 type(city)
