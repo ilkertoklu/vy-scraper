@@ -63,17 +63,23 @@ def link(city)
   type(city).each do |type|
     last_page = request(type).xpath('//div/b[1]').text.split(' ')[-2].to_i + 1
     page = 1
+    stack(page, last_page, type, book)
+  end
+end
 
-    while page < last_page
-      links = request(type.text + page.to_s).xpath('//p/b/a/@href')
-      book[:workbook].write 'places_samsun-deneme.xls'
+def stack(page, last_page, type, book)
+  while page < last_page
+    links = request(type.text + page.to_s).xpath('//p/b/a/@href')
+    book[:workbook].write 'places_samsun-deneme-pg.xls'
+    append(links, book)
+    page += 1
+  end
+end
 
-      links.each do |link|
-        book[:sheet].row(book[:index]).concat encoder(column_check(database(link)))
-        p book[:index] += 1
-      end
-      page += 1
-    end
+def append(links, book)
+  links.each do |link|
+    book[:sheet].row(book[:index]).concat encoder(column_check(database(link)))
+    p book[:index] += 1
   end
 end
 link(city)
