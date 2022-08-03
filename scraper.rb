@@ -37,7 +37,7 @@ def database(link)
   Hash[headers.zip body]
 end
 
-def type(city)
+def collect_types(city)
   last_page = request("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
   page = 1
   types = []
@@ -60,14 +60,14 @@ end
 
 def link(city)
   book = book_builder
-  type(city).each do |type|
+  collect_types(city).each do |type|
     last_page = request(type).xpath('//div/b[1]').text.split(' ')[-2].to_i + 1
     page = 1
-    stack(page, last_page, type, book)
+    collect_urls(page, last_page, type, book)
   end
 end
 
-def stack(page, last_page, type, book)
+def collect_urls(page, last_page, type, book)
   while page < last_page
     links = request(type.text + page.to_s).xpath('//p/b/a/@href')
     book[:workbook].write 'places_samsun-deneme-pg.xls'
