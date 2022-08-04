@@ -6,7 +6,7 @@ require 'spreadsheet'
 
 city = 'Samsun'
 
-def request_address(address)
+def request_url(address)
   response = HTTParty.get(address)
   html = response.body
   Nokogiri::HTML(html) # => Nokogiri::XML
@@ -23,7 +23,7 @@ def column_check(db)
 end
 
 def database(link)
-  doc = request_address(link)
+  doc = request_url(link)
   table = doc.xpath('//tbody/tr').map(&:text)
   Hash[header(table).zip body(doc, table)]
 end
@@ -39,13 +39,11 @@ def body(doc, table)
 end
 
 def place_types(city)
-  last_page = request_address("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i + 1
-  page = 1
+  last_page = request_url("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i
   types = []
 
-  while page < last_page
-    types += request_address("https://vymaps.com/TR/#{city}/#{page}").xpath('//div/a/@href')
-    page += 1
+  last_page.times do |page|
+    types += request_url("https://vymaps.com/TR/#{city}/#{page + 1}").xpath('//div/a/@href').map(&:text)
   end
   types
 end
@@ -62,18 +60,17 @@ end
 def linker(city)
   book = build_book
   place_types(city).each do |type|
-    last_page = request_address(type).xpath('//div/b[1]').text.split(' ')[-2].to_i + 1
-    page = 1
-    url_stack(page, last_page, type, book)
+    url_stack(type, book)
   end
 end
 
-def url_stack(page, last_page, type, book)
-  while page < last_page
-    links = request_address(type.text + page.to_s).xpath('//p/b/a/@href')
-    book[:workbook].write 'places_samsun-deneme-pg.xls'
+def url_stack(type, book)
+  last_page = request_url(type).xpath('//div/b[1]').text.split(' ')[-2].to_i
+
+  last_page.times do |page|
+    links = request_url(type + (page + 1).to_s).xpath('//p/b/a/@href')
+    book[:workbook].write 'places_samsun-deneme.xls'
     append_to_row(links, book)
-    page += 1
   end
 end
 
