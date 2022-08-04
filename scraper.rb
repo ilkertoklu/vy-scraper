@@ -69,7 +69,7 @@ def url_stack(type, book)
 
   last_page.times do |page|
     links = request_url(type + (page + 1).to_s).xpath('//p/b/a/@href')
-    book[:workbook].write 'places_samsun-denemeaaaaa.xls'
+    book[:workbook].write 'places_samsun-deneme.xls'
     append_to_row(links, book)
   end
 end
