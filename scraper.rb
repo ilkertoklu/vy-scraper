@@ -22,12 +22,6 @@ def column_check(db)
   init_headers.map { |header| db[header] }
 end
 
-def database(link)
-  doc = request_url(link)
-  table = doc.xpath('//tbody/tr').map(&:text)
-  Hash[header(table).zip body(doc, table)]
-end
-
 def header(table)
   [:name] + table.map { |row| row[0, row.index(':')].downcase.to_sym } + [:ophours]
 end
@@ -38,14 +32,10 @@ def body(doc, table)
   [doc.xpath('//h1/a/b').text] + content + ophours
 end
 
-def place_types(city)
-  last_page = request_url("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i
-  types = []
-
-  last_page.times do |page|
-    types += request_url("https://vymaps.com/TR/#{city}/#{page + 1}").xpath('//div/a/@href').map(&:text)
-  end
-  types
+def database(link)
+  doc = request_url(link)
+  table = doc.xpath('//tbody/tr').map(&:text)
+  Hash[header(table).zip body(doc, table)]
 end
 
 def build_book
@@ -55,6 +45,16 @@ def build_book
   index = 1
 
   { workbook: workbook, sheet: sheet, index: index }
+end
+
+def place_types(city)
+  last_page = request_url("https://vymaps.com/TR/#{city}").xpath('//b[1]').text.split(' ')[-2].to_i
+  types = []
+
+  last_page.times do |page|
+    types += request_url("https://vymaps.com/TR/#{city}/#{page + 1}").xpath('//div/a/@href').map(&:text)
+  end
+  types
 end
 
 def linker(city)
@@ -69,7 +69,7 @@ def url_stack(type, book)
 
   last_page.times do |page|
     links = request_url(type + (page + 1).to_s).xpath('//p/b/a/@href')
-    book[:workbook].write 'places_samsun-deneme.xls'
+    book[:workbook].write 'places_samsun-denemeaaaaa.xls'
     append_to_row(links, book)
   end
 end
