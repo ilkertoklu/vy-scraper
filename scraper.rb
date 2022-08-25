@@ -7,9 +7,7 @@ require 'spreadsheet'
 city = 'Samsun'
 
 def request_url(address)
-  response = HTTParty.get(address)
-  html = response.body
-  Nokogiri::HTML(html) # => Nokogiri::XML
+  Nokogiri::HTML(HTTParty.get(address).body)
 end
 
 def encoder(list)
@@ -17,9 +15,9 @@ def encoder(list)
 end
 
 def column_check(db)
-  init_headers = [:name, :"place types", :address, :coordinate, :phone,
-                  :mail, :parking, :rating, :social, :website, :ophours]
-  init_headers.map { |header| db[header] }
+  headers = [:name, :"place types", :address, :coordinate, :phone,
+             :mail, :parking, :rating, :social, :website, :ophours]
+  headers.map { |header| db[header] }
 end
 
 def header(table)
@@ -59,14 +57,12 @@ end
 
 def linker(city)
   book = build_book
-  place_types(city).each do |type|
-    url_stack(type, book)
-  end
+  place_types(city).each { |type| url_stack(type, book) }
 end
 
 def url_stack(type, book)
   last_page = request_url(type).xpath('//div/b[1]').text.split(' ')[-2].to_i
-
+  
   last_page.times do |page|
     links = request_url(type + (page + 1).to_s).xpath('//p/b/a/@href')
     book[:workbook].write 'places_samsun-deneme.xls'
